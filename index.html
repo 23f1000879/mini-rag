@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini RAG Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        .header-title {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header-title h1 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .stats-badge {
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        textarea {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success-custom {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+        .citation-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        .citation-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .answer-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+        }
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+        }
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-upload-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-upload-label {
+            cursor: pointer;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-title">
+            <h1><i class="fas fa-brain"></i> Mini RAG Application</h1>
+            <p class="text-muted mb-0">Powered by Groq + Pinecone + Cohere</p>
+            <div id="statsDisplay" class="stats-badge" style="display: none;">
+                <i class="fas fa-database"></i> <span id="statsText">No documents indexed yet</span>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <div class="row">
+            <!-- Left Column: Document Input -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-file-upload"></i> Document Input
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="file-upload-wrapper">
+                                <label for="fileInput" class="btn btn-outline-secondary btn-custom file-upload-label">
+                                    <i class="fas fa-upload"></i> Upload .txt File
+                                </label>
+                                <input type="file" id="fileInput" accept=".txt">
+                            </div>
+                            <small class="text-muted d-block mt-2" id="fileName"></small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="textInput" class="form-label fw-bold">Or paste your text here:</label>
+                            <textarea 
+                                id="textInput" 
+                                class="form-control" 
+                                rows="12" 
+                                placeholder="Enter your document text here...
+                                
+Example: Paste articles, research papers, documentation, or any text you want to query later."
+                            ></textarea>
+                        </div>
+                        
+                        <button id="indexBtn" class="btn btn-primary-custom btn-custom w-100">
+                            <i class="fas fa-database"></i> Index Document
+                            <span class="loading spinner-border spinner-border-sm ms-2"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Query -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-search"></i> Ask Questions
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="queryInput" class="form-label fw-bold">Your Question:</label>
+                            <textarea 
+                                id="queryInput" 
+                                class="form-control" 
+                                rows="4" 
+                                placeholder="Ask anything about the indexed document...
+                                
+Example: What are the main topics discussed?"
+                            ></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="topKInput" class="form-label fw-bold">Number of sources to retrieve:</label>
+                            <input type="number" id="topKInput" class="form-control" value="5" min="1" max="10">
+                        </div>
+                        
+                        <button id="queryBtn" class="btn btn-success-custom btn-custom w-100">
+                            <i class="fas fa-bolt"></i> Get Answer
+                            <span class="loading spinner-border spinner-border-sm ms-2"></span>
+                        </button>
+
+                        <!-- Answer Display -->
+                        <div id="answerContainer" style="display: none;">
+                            <div class="answer-box">
+                                <h5><i class="fas fa-lightbulb"></i> Answer:</h5>
+                                <div id="answerText"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Citations Section -->
+        <div class="row">
+            <div class="col-12">
+                <div id="citationsCard" class="card" style="display: none;">
+                    <div class="card-header">
+                        <i class="fas fa-quote-left"></i> Sources & Citations
+                    </div>
+                    <div class="card-body" id="citationsContainer">
+                        <!-- Citations will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-4 text-white">
+            <small>
+                <i class="fas fa-code"></i> Built with Flask + Bootstrap | 
+                <i class="fas fa-bolt"></i> Powered by Groq | 
+                <i class="fas fa-database"></i> Vector DB: Pinecone
+            </small>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('textInput').value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show alert-custom" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('alertContainer').innerHTML = alertHtml;
+            setTimeout(() => {
+                document.getElementById('alertContainer').innerHTML = '';
+            }, 5000);
+        }
+
+        // Index text
+        document.getElementById('indexBtn').addEventListener('click', async function() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (!text) {
+                showAlert('Please enter some text to index!', 'warning');
+                return;
+            }
+
+            const btn = this;
+            const loading = btn.querySelector('.loading');
+            
+            btn.disabled = true;
+            loading.style.display = 'inline-block';
+
+            try {
+                const response = await fetch(`${API_URL}/index`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(`✅ Successfully indexed ${data.chunks_indexed} chunks!`, 'success');
+                    
+                    // Update stats
+                    const statsText = `${data.stats.total_chunks} chunks | Avg: ${data.stats.avg_chunk_size} chars | Dim: ${data.stats.embedding_dim}`;
+                    document.getElementById('statsText').textContent = statsText;
+                    document.getElementById('statsDisplay').style.display = 'inline-block';
+                } else {
+                    showAlert(`❌ Error: ${data.error}`, 'danger');
+                }
+            } catch (error) {
+                showAlert(`❌ Connection error: ${error.message}`, 'danger');
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Query
+        document.getElementById('queryBtn').addEventListener('click', async function() {
+            const query = document.getElementById('queryInput').value.trim();
+            const topK = parseInt(document.getElementById('topKInput').value) || 5;
+            
+            if (!query) {
+                showAlert('Please enter a question!', 'warning');
+                return;
+            }
+
+            const btn = this;
+            const loading = btn.querySelector('.loading');
+            
+            btn.disabled = true;
+            loading.style.display = 'inline-block';
+
+            // Hide previous results
+            document.getElementById('answerContainer').style.display = 'none';
+            document.getElementById('citationsCard').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query, top_k: topK })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display answer
+                    document.getElementById('answerText').innerHTML = data.answer.replace(/\n/g, '<br>');
+                    document.getElementById('answerContainer').style.display = 'block';
+
+                    // Display citations
+                    if (data.citations && data.citations.length > 0) {
+                        const citationsHtml = data.citations.map(citation => `
+                            <div class="citation-item">
+                                <div class="d-flex align-items-start">
+                                    <span class="citation-number">${citation.id}</span>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-2"><em>"${citation.text}"</em></p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt"></i> Position: Chunk ${citation.position}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        document.getElementById('citationsContainer').innerHTML = citationsHtml;
+                        document.getElementById('citationsCard').style.display = 'block';
+                    }
+
+                    showAlert('✅ Answer generated successfully!', 'success');
+                } else {
+                    showAlert(`❌ Error: ${data.error}`, 'danger');
+                }
+            } catch (error) {
+                showAlert(`❌ Connection error: ${error.message}`, 'danger');
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Enter key support
+        document.getElementById('queryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                document.getElementById('queryBtn').click();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
