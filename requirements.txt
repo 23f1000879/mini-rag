@@ -5,9 +5,10 @@ flask-cors==4.0.0
 pinecone-client
 groq==0.4.2
 cohere==4.37
-numpy==1.24.3
+numpy
 
 python-dotenv==1.0.0
 gunicorn==21.2.0
+
 
 
