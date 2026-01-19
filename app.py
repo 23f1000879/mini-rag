@@ -1,4 +1,6 @@
 
+from flask import send_from_directory
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from groq import Groq
@@ -12,6 +14,17 @@ import numpy as np
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    """Serve frontend index.html and static files"""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
+    if path != "" and os.path.exists(os.path.join(frontend_dir, path)):
+        return send_from_directory(frontend_dir, path)
+    else:
+        return send_from_directory(frontend_dir, "index.html")
+
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "your-pinecone-key")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "your-groq-key")
