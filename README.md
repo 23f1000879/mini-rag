@@ -26,8 +26,9 @@ LLM: Groq (LLaMA-3)
 
 Reranker: Cohere
 
-🚀 Quick Start (Local)
+🚀 Quick Start
 1️⃣ Install Dependencies
+
 pip install -r requirements.txt
 
 2️⃣ Set Environment Variables
@@ -57,5 +58,6 @@ Enter your question
 Select number of sources (default: 5)
 
 Click Get Answer
+
 
 View answer with citations 📚
