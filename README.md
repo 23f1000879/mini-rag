@@ -37,11 +37,9 @@ PINECONE_API_KEY=your-pinecone-api-key
 GROQ_API_KEY=your-groq-api-key
 COHERE_API_KEY=your-cohere-api-key
 
-3️⃣ Start Backend
+3️⃣ Start app
 python app.py
 
-4️⃣ Start Frontend
-python frontend_app.py
 
 📌 Index Documents
 
@@ -61,3 +59,4 @@ Click Get Answer
 
 
 View answer with citations 📚
+
