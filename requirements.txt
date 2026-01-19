@@ -3,12 +3,14 @@ wheel
 flask==3.0.0
 flask-cors==4.0.0
 pinecone
-groq==0.4.2
+groq==1.0.0
+httpx==0.28.1
 cohere==4.37
 numpy
 
 python-dotenv==1.0.0
 gunicorn==21.2.0
+
 
 
 
