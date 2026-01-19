@@ -2,6 +2,8 @@ Mini RAG Application 🚀
 
 A simple Retrieval-Augmented Generation (RAG) application built with Flask (Python) and HTML frontend, capable of indexing documents and answering questions with inline citations.
 
+Live Preview: - https://mini-rag-hrpe.onrender.com/
+
 🧠 What This Project Does
 
 Indexes text documents into a vector database
@@ -59,4 +61,5 @@ Click Get Answer
 
 
 View answer with citations 📚
+
 
