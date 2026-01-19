@@ -2,13 +2,14 @@ setuptools>=65.5.0
 wheel
 flask==3.0.0
 flask-cors==4.0.0
-pinecone-client
+pinecone
 groq==0.4.2
 cohere==4.37
 numpy
 
 python-dotenv==1.0.0
 gunicorn==21.2.0
+
 
 
 
